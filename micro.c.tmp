@@ -1,0 +1,81 @@
+# include "micro.h"
+//# include "modules/24lc256.h"
+# include <tmp_io.h>
+# include "librarys/clock.h"
+# define TMP_RX_IC_PID 2
+# define TMP_RX_OC_PID 3
+
+# define TMP_TX_IC_PID 4
+# define TMP_TX_OC_PID 5
+
+# define TMP_RX_PID 6
+# define TMP_TX_PID 7
+
+struct tmp_io_t tmp_io = {
+	.rx_pid = TMP_RX_PID,
+	.tx_pid = TMP_TX_PID,
+	.rx_ci_pid = TMP_RX_IC_PID,
+	.tx_ci_pid = TMP_TX_IC_PID,
+	.rx_co_pid = TMP_RX_OC_PID,
+	.tx_co_pid = TMP_TX_OC_PID
+};
+
+int main(void) {
+	_delay_ms(5000);
+	micro_init();
+	for (;;) {
+		micro_tick();
+	}
+}
+
+//struct _24lc256_t _24lc256;
+
+# define __SERVER
+//# define __CLIENT
+
+# include "uart.h"
+void micro_holdup(mdl_uint_t __holdup) {
+	if (__holdup == 1) {_delay_ms(1);} else {_delay_ms(0.02);}}
+
+void micro_init() {
+	clock_init();
+	uart_init();
+	tmp_init(&tmp_io, &set_pin_mode, &set_pin_state, &get_pin_state);
+
+	// invert the clock signals
+	invert_snd_tx_trig_val();
+	invert_rcv_rx_trig_val();
+
+	// flip each bit recved thru the rx line
+	tmp_tog_rcv_optflag(&tmp_io, TMP_FLIP_BIT_OPT);
+
+	tmp_set_holdup_fptr(&tmp_io, &micro_holdup);
+	tmp_io.snd_holdup_ic = 12;
+	tmp_io.rcv_holdup_ic = 12;
+	mdl_uint_t timeo = 12000; //ms
+	tmp_set_opt(&tmp_io, TMP_OPT_SND_TIMEO, &timeo);
+	tmp_set_opt(&tmp_io, TMP_OPT_RCV_TIMEO, &timeo);
+}
+
+void micro_tick() {
+# ifdef __SERVER
+	mdl_u8_t outbound_byte = 212;
+	if (tmp_send(&tmp_io, tmp_io_buff(&outbound_byte, 1)) != TMP_SUCCESS) return;
+# endif
+# ifdef __CLIENT
+	mdl_u8_t inbound_byte = 0x0;
+	if (tmp_recv(&tmp_io, tmp_io_buff(&inbound_byte, 1)) == TMP_SUCCESS) {
+		uart_send_byte(inbound_byte);
+	} else return;
+# endif
+/*
+	_24lc256_write_byte(&_24lc256, 21, 0x50);
+
+	mdl_u8_t val = 0;
+	_24lc256_read_byte(&_24lc256, &val, 0x50);
+	scomm_print(&scomm, _w8_bin_str(val));
+	scomm_print(&scomm, "\n");
+	_delay_ms(1000);
+*/
+}
+

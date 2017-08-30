@@ -1,0 +1,20 @@
+# include "micro.h"
+# include "serial_comm.h"
+# include "librarys/nled.h"
+int main(void) {
+	_delay_ms(5000);
+	micro_init();
+	for (;;) {
+		micro_tick();
+	}
+}
+
+struct nled_t nled;
+void micro_init() {
+	mdl_u8_t pid_layout[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+	nled_init(&nled, 2, 3, 4, pid_layout);
+}
+
+void micro_tick() {
+	nled_set(&nled, 2);
+}

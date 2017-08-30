@@ -19,8 +19,8 @@
 
 // this code was not written by me, it was from the arduino core
 
-# ifndef __binary__hpp__
-# define __binary__hpp__
+# ifndef __binary__h
+# define __binary__h
 
 # define B0 0
 # define B00 0
@@ -533,4 +533,4 @@
 # define B11111110 254
 # define B11111111 255
 
-# endif /*__binary__hpp__*/
+# endif /*__binary__h*/
