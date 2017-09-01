@@ -1,6 +1,6 @@
 # ifndef __shift__reg__h
 # define __shift__reg__h
-# include <eint_t.h>
+# include <mdlint.h>
 # include "micro.h"
 
 # define SHIFT_REG_IN 0x0

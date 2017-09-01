@@ -1,6 +1,6 @@
 # include "../micro.h"
 # include "../shift_reg.h"
-# include <eint_t.h>
+# include <mdlint.h>
 
 struct nled_t {
 	struct shift_reg_t shift_reg;

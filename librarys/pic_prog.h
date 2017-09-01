@@ -1,7 +1,7 @@
 # ifndef __pic__prog__h
 # define __pic__prog__h
 # include "../micro.h"
-# include <eint_t.h>
+# include <mdlint.h>
 # include "../uart.h"
 # include "bin_str.h"
 struct pic_prog_t {

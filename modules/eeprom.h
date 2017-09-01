@@ -1,7 +1,7 @@
 # ifndef __micro__eeprom__h
 # define __micro__eeprom__h
 # include "../micro.h"
-# include <eint_t.h>
+# include <mdlint.h>
 # include "24lc256.h"
 # define __EEPROM_LIGHT
 struct eeprom_t {

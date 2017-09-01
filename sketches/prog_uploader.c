@@ -52,9 +52,16 @@ void* test_func(mdl_u8_t __id, void *__arg) {
 		case 5:
 			tmp_recv_byte(&_tmp_io, (mdl_u8_t*)__arg);
 		break;
-# endif 
 		case 6:
-			uart_send_byte(*(mdl_u8_t*)__arg);
+			ret_val = tmp_par_arcv_sig(&_tmp_io);
+		break;
+		case 7:
+			ret_val = tmp_par_asnd_sig(&_tmp_io);
+		break;
+# endif
+		case 8:
+		break;
+		case 9:
 		break;
 	}
 

@@ -1,1 +1,1 @@
-rm -f *.elf *.o *.hex
+rm -f *.elf *.o *.hex modules/*.o librarys/*.o

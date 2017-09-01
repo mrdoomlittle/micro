@@ -14,9 +14,6 @@ int main(void) {
 void micro_init(){}
 void micro_tick() {
 	tmp_send_byte(&_tmp_io, 1);
-	_delay_ms(1000);
-	tmp_send_byte(&_tmp_io, 0);
-	_delay_ms(1000);
 }*/
 
 //# include "sketches/uart_tmp_relay.c"

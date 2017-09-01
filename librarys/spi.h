@@ -1,4 +1,4 @@
-# include <eint_t.h>
+# include <mdlint.h>
 # include "../micro.h"
 # include <avr/interrupt.h>
 mdl_u8_t spi_sck_pid = 0;

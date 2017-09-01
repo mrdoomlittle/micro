@@ -18,7 +18,7 @@
 # include "binary.h"
 # include <stdint.h>
 # include <stdlib.h>
-# include <eint_t.h>
+# include <mdlint.h>
 # include <avr/io.h>
 # include <math.h>
 # include <util/delay.h>

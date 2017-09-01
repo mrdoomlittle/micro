@@ -1,6 +1,6 @@
 # ifndef __uart__h
 # define __uart__h
-# include <eint_t.h>
+# include <mdlint.h>
 # define UART_BAUDRATE 38400
 # define BAUD_PRESCALE (16000000/16/UART_BAUDRATE) - 1
 # include "micro.h"

@@ -1,6 +1,6 @@
 # ifndef __24lc256__h
 # define __24lc256__h
-# include <eint_t.h>
+# include <mdlint.h>
 # include "../micro.h"
 # include <avr/interrupt.h>
 
