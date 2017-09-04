@@ -7,12 +7,12 @@ void _24lc256_start_bit(struct _24lc256_t *__24lc256) {
 	set_pin_state(DIGITAL_OUTPUT, __24lc256->sda_pid);
 	set_pin_state(DIGITAL_HIGH, __24lc256->sda_pid);
 	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
-	_delay_ms(_24LC256_LDELAY);
+	_delay_us(_24LC256_LDELAY);
 
 	set_pin_state(DIGITAL_LOW, __24lc256->sda_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_DELAY);
 	set_pin_state(DIGITAL_LOW, __24lc256->scl_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_DELAY);
 	ISR_ENABLE
 }
 
@@ -21,10 +21,10 @@ void _24lc256_end_bit(struct _24lc256_t *__24lc256) {
 	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
 	set_pin_state(DIGITAL_LOW, __24lc256->sda_pid);
 	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
-	_delay_ms(_24LC256_LDELAY);
+	_delay_us(_24LC256_LDELAY);
 
 	set_pin_state(DIGITAL_HIGH, __24lc256->sda_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_DELAY);
 	ISR_ENABLE
 }
 
@@ -32,13 +32,13 @@ void _24lc256_write_bit(struct _24lc256_t *__24lc256, mdl_u8_t __bit) {
 	ISR_DISABLE
 	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
 	set_pin_state(__bit, __24lc256->sda_pid);
-	_delay_ms(_24LC256_DELAY);
+
 	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_CLK_HI_DELAY);
 	set_pin_state(DIGITAL_LOW, __24lc256->scl_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_CLK_LO_DELAY);
 	set_pin_state(DIGITAL_LOW, __24lc256->sda_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_DELAY);
 	ISR_ENABLE
 }
 
@@ -46,13 +46,13 @@ void _24lc256_read_bit(struct _24lc256_t *__24lc256, mdl_u8_t *__bit) {
 	ISR_DISABLE
 	set_pin_mode(DIGITAL_HIGH, __24lc256->sda_pid);
 	set_pin_mode(DIGITAL_INPUT, __24lc256->sda_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_DELAY);
 	*__bit = get_pin_state(__24lc256->sda_pid);
-	_delay_ms(_24LC256_DELAY);
+
 	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_CLK_HI_DELAY);
 	set_pin_state(DIGITAL_LOW, __24lc256->scl_pid);
-	_delay_ms(_24LC256_DELAY);
+	_delay_us(_24LC256_CLK_LO_DELAY);
 	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
 	ISR_ENABLE
 }

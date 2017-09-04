@@ -3,9 +3,10 @@
 # include <mdlint.h>
 # include "../micro.h"
 # include <avr/interrupt.h>
-
-# define _24LC256_DELAY 0.0007
-# define _24LC256_LDELAY 0.02
+# define _24LC256_DELAY 1.4
+# define _24LC256_CLK_HI_DELAY 0.7
+# define _24LC256_CLK_LO_DELAY 1.4
+# define _24LC256_LDELAY 1.8
 struct _24lc256_t{
 	mdl_u8_t sda_pid, scl_pid;
 };
