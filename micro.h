@@ -6,11 +6,8 @@
 # define DIGITAL_OUTPUT 0x1
 # define DIGITAL_INPUT 0x0
 
-# define DIG_GPIO_HIGH 0x1
-# define DIG_GPIO_LOW 0x0
-
-# define DIG_GPIO_OUT 0x1
-# define DIG_GPIO_IN 0x0
+# define DIGITAL_OUT 0x1
+# define DIGITAL_IN 0x0
 
 # define __MICRO_LIGHT
 # define ATTINY_85_MX_PID 4
@@ -24,8 +21,7 @@
 # include <util/delay.h>
 # include "uart.h"
 # include "wiring_digital.h"
-
-# ifdef __WITH_TMP
+# ifdef __mdl_tmp
 #	include "tmp_io.h"
 # endif
 

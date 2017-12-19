@@ -15,17 +15,8 @@ void micro_init() {
 	ADCSRA |= 1 << ADSC;
 }
 
-# define SAMPLES 6
 void micro_tick() {
-	mdl_uint_t sample = 0;
-
-	mdl_u8_t ic = 0;
-	while(ic != SAMPLES) {
-		sample += analog_pval;
-		ic++;
-	}
-
-	uart_send_byte((mdl_u8_t)(sample/SAMPLES));
+	uart_send_byte(analog_pval);
 }
 
 ISR(ADC_vect) {

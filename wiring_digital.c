@@ -187,4 +187,5 @@ get_pin_state(mdl_u8_t __pid)
 	}
 # endif
 # endif
+	return 0;
 }

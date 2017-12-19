@@ -1,0 +1,12 @@
+[submodule "mdlint"]
+	path = mdlint
+	url = git@github.com:mrdoomlittle/mdlint.git
+[submodule "bci"]
+	path = bci
+	url = git@github.com:mrdoomlittle/bci.git
+[submodule "mfs"]
+	path = mfs
+	url = git@github.com:mrdoomlittle/mfs.git
+[submodule "tmp"]
+	path = tmp
+	url = git@github.com:mrdoomlittle/tmp.git

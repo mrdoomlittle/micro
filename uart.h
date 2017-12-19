@@ -2,7 +2,7 @@
 # define __uart__h
 # include <mdlint.h>
 # define UART_BAUDRATE 38400
-# define BAUD_PRESCALE (16000000/16/UART_BAUDRATE) - 1
+# define BAUD_PRESCALE ((F_CPU/16/UART_BAUDRATE)-1)
 # include "micro.h"
 void uart_init(void);
 void uart_send_byte(mdl_u8_t);

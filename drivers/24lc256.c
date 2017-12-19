@@ -1,8 +1,7 @@
 # include "24lc256.h"
-# define ISR_DISABLE mdl_u8_t re_enable_gi = 0; if ((SREG >> 7) & 1) {re_enable_gi = 1; cli();}
+# define ISR_DISABLE mdl_u8_t re_enable_gi = 0; if ((SREG>>7)&1) {re_enable_gi = 1;cli();}
 # define ISR_ENABLE if (re_enable_gi) sei();
-
-void _24lc256_start_bit(struct _24lc256_t *__24lc256) {
+void _24lc256_start_bit(struct _24lc256 *__24lc256) {
 	ISR_DISABLE
 	set_pin_state(DIGITAL_OUTPUT, __24lc256->sda_pid);
 	set_pin_state(DIGITAL_HIGH, __24lc256->sda_pid);
@@ -16,7 +15,7 @@ void _24lc256_start_bit(struct _24lc256_t *__24lc256) {
 	ISR_ENABLE
 }
 
-void _24lc256_end_bit(struct _24lc256_t *__24lc256) {
+void _24lc256_end_bit(struct _24lc256 *__24lc256) {
 	ISR_DISABLE
 	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
 	set_pin_state(DIGITAL_LOW, __24lc256->sda_pid);
@@ -28,7 +27,7 @@ void _24lc256_end_bit(struct _24lc256_t *__24lc256) {
 	ISR_ENABLE
 }
 
-void _24lc256_write_bit(struct _24lc256_t *__24lc256, mdl_u8_t __bit) {
+void _24lc256_write_bit(struct _24lc256 *__24lc256, mdl_u8_t __bit) {
 	ISR_DISABLE
 	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
 	set_pin_state(__bit, __24lc256->sda_pid);
@@ -42,7 +41,7 @@ void _24lc256_write_bit(struct _24lc256_t *__24lc256, mdl_u8_t __bit) {
 	ISR_ENABLE
 }
 
-void _24lc256_read_bit(struct _24lc256_t *__24lc256, mdl_u8_t *__bit) {
+void _24lc256_read_bit(struct _24lc256 *__24lc256, mdl_u8_t *__bit) {
 	ISR_DISABLE
 	set_pin_mode(DIGITAL_HIGH, __24lc256->sda_pid);
 	set_pin_mode(DIGITAL_INPUT, __24lc256->sda_pid);
@@ -57,24 +56,26 @@ void _24lc256_read_bit(struct _24lc256_t *__24lc256, mdl_u8_t *__bit) {
 	ISR_ENABLE
 }
 
-void _24lc256_send_addr(struct _24lc256_t *__24lc256, mdl_u16_t __addr) {
+void _24lc256_send_addr(struct _24lc256 *__24lc256, mdl_u16_t __addr) {
 	mdl_u8_t ack_val = 0;
-	for (mdl_u8_t o = 0; o != 8; o ++)
-		_24lc256_write_bit(__24lc256, (__addr >> (15 - o)) & 0x1);
+	mdl_u8_t off;
+
+	off = 0;
+	for (;off != 8;off++)
+		_24lc256_write_bit(__24lc256, (__addr>>(15-off))&0x1);
 
 	// get ack
 	_24lc256_read_bit(__24lc256, &ack_val);
-
-	for (mdl_u8_t o = 0; o != 8; o ++)
-		_24lc256_write_bit(__24lc256, (__addr >> (7 - o)) & 0x1);
+	off = 0;
+	for (;off != 8;off++)
+		_24lc256_write_bit(__24lc256, (__addr>>(7-off))&0x1);
 
 	// get ack
 	_24lc256_read_bit(__24lc256, &ack_val);
 }
 
-
 mdl_u8_t volatile ignore_end_bit = 0;
-void _24lc256_put_byte(struct _24lc256_t *__24lc256, mdl_u8_t __byte, mdl_u16_t __addr) {
+void _24lc256_put_byte(struct _24lc256 *__24lc256, mdl_u8_t __byte, mdl_u16_t __addr) {
 	mdl_u8_t ack_val = 0;
 	// start bit
 	_24lc256_start_bit(__24lc256);
@@ -100,8 +101,9 @@ void _24lc256_put_byte(struct _24lc256_t *__24lc256, mdl_u8_t __byte, mdl_u16_t 
 	_24lc256_send_addr(__24lc256, __addr);
 
 	// write data to memory
-	for (mdl_u8_t bit_fs = 0; bit_fs != 8; bit_fs++)
-		_24lc256_write_bit(__24lc256, (__byte >> bit_fs) & 1);
+	mdl_u8_t off = 0;
+	for (;off != 8;off++)
+		_24lc256_write_bit(__24lc256, (__byte>>off)&0x1);
 
 	// get ack
 	_24lc256_read_bit(__24lc256, &ack_val);
@@ -112,18 +114,21 @@ void _24lc256_put_byte(struct _24lc256_t *__24lc256, mdl_u8_t __byte, mdl_u16_t 
 	_delay_ms(6);
 }
 
-void _24lc256_page_write(struct _24lc256_t *__24lc256, mdl_u8_t __page[64], mdl_u16_t __addr) {
+void _24lc256_page_write(struct _24lc256 *__24lc256, mdl_u8_t __page[64], mdl_u16_t __addr) {
 	ignore_end_bit = 1;
 	_24lc256_put_byte(__24lc256, *__page, __addr);
 	ignore_end_bit = 0;
 
-	for (mdl_u8_t *itr = __page+1; itr != __page + 64; itr++) {
-		for (mdl_u8_t bit_fs = 0; bit_fs != 8; bit_fs++)
-			_24lc256_write_bit(__24lc256, (*itr >> bit_fs) & 1);
+	mdl_u8_t *itr = __page+1;
+	while(itr != __page+64) {
+		mdl_u8_t off = 0;
+		for (;off != 8;off++)
+			_24lc256_write_bit(__24lc256, (*itr>>off)&0x1);
 
 		mdl_u8_t ack_val = 0;
 		_24lc256_read_bit(__24lc256, &ack_val); //ack
 		_delay_ms(6);
+		itr++;
 	}
 
 	// end bit
@@ -131,7 +136,7 @@ void _24lc256_page_write(struct _24lc256_t *__24lc256, mdl_u8_t __page[64], mdl_
 	_delay_ms(6);
 }
 
-void _24lc256_get_byte(struct _24lc256_t *__24lc256, mdl_u8_t *__byte, mdl_u16_t __addr) {
+void _24lc256_get_byte(struct _24lc256 *__24lc256, mdl_u8_t *__byte, mdl_u16_t __addr) {
 	mdl_u8_t ack_val = 0;
 	// start bit
 	_24lc256_start_bit(__24lc256);
@@ -176,10 +181,11 @@ void _24lc256_get_byte(struct _24lc256_t *__24lc256, mdl_u8_t *__byte, mdl_u16_t
 	// get ack
 	_24lc256_read_bit(__24lc256, &ack_val);
 
-	for (mdl_u8_t bit_fs = 0; bit_fs != 8; bit_fs ++) {
+	mdl_u8_t off = 0;
+	for (;off != 8;off++) {
 		mdl_u8_t recved_bit = 0;
 		_24lc256_read_bit(__24lc256, &recved_bit);
-		*__byte |= recved_bit << bit_fs;
+		*__byte |= recved_bit<<off;
 	}
 
 	// get ack
@@ -190,26 +196,28 @@ void _24lc256_get_byte(struct _24lc256_t *__24lc256, mdl_u8_t *__byte, mdl_u16_t
 		_24lc256_end_bit(__24lc256);
 }
 
-void _24lc256_seq_read(struct _24lc256_t *__24lc256, mdl_u8_t *__mem_ptr, mdl_uint_t __bc, mdl_u16_t __addr) {
+void _24lc256_seq_read(struct _24lc256 *__24lc256, mdl_u8_t *__p, mdl_uint_t __bc, mdl_u16_t __addr) {
 	ignore_end_bit = 1;
-	_24lc256_get_byte(__24lc256, __mem_ptr, __addr);
+	_24lc256_get_byte(__24lc256, __p, __addr);
 	ignore_end_bit = 0;
 
-	for (mdl_u8_t *itr = __mem_ptr+1; itr != __mem_ptr + __bc; itr++) {
-		for (mdl_u8_t bit_fs = 0; bit_fs != 8; bit_fs ++) {
+	mdl_u8_t *itr = __p+1;
+	while(itr != __p+__bc) {
+		mdl_u8_t off = 0;
+		for (;off != 8;off++) {
 			mdl_u8_t recved_bit = 0;
 			_24lc256_read_bit(__24lc256, &recved_bit);
-			*itr |= recved_bit << bit_fs;
+			*itr |= recved_bit<<off;
 		}
 
 		mdl_u8_t ack_val = 0;
 		_24lc256_read_bit(__24lc256, &ack_val); // ack
+		itr++;
 	}
-
 	_24lc256_end_bit(__24lc256);
 }
 
-void _24lc256_init(struct _24lc256_t *__24lc256, mdl_u8_t __sda_pid, mdl_u8_t __scl_pid) {
+void _24lc256_init(struct _24lc256 *__24lc256, mdl_u8_t __sda_pid, mdl_u8_t __scl_pid) {
 	__24lc256->sda_pid = __sda_pid;
     __24lc256->scl_pid = __scl_pid;
 	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);

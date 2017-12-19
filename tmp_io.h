@@ -15,4 +15,4 @@
 struct tmp_io extern _tmp_io;
 
 void _tmp_init();
-# endif
+# endif /*__micro__tmp__io__h*/

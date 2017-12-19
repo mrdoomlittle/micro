@@ -1,84 +1,81 @@
 # include "eeprom.h"
 # include <string.h>
+# define PAGE_SHIFT 6
 # define PAGE_SIZE 64
 mdl_u8_t page_buff[PAGE_SIZE];
-// how many 64 in no
-# define SH 6
-void eeprom_init(struct eeprom_t *__eeprom, void *__driver_context) {
-	__eeprom->driver_context = __driver_context;
+void eeprom_init(struct eeprom *__eeprom, void *__driver_ctx) {
+	__eeprom->driver_ctx = __driver_ctx;
 	memset(page_buff, 0xFF, PAGE_SIZE);
 }
 
-void eeprom_page_update(struct eeprom_t *__eeprom, mdl_u8_t __page) {
-	_24lc256_page_write((struct _24lc256_t*)__eeprom->driver_context, page_buff, __page*PAGE_SIZE);}
+void eeprom_page_update(struct eeprom *__eeprom, mdl_u8_t __page) {
+	_24lc256_page_write((struct _24lc256*)__eeprom->driver_ctx, page_buff, __page*PAGE_SIZE);}
 
-void eeprom_put_byte(struct eeprom_t *__eeprom, mdl_u8_t __byte, mdl_u16_t __addr) {
+void eeprom_put_byte(struct eeprom *__eeprom, mdl_u8_t __byte, mdl_u16_t __addr) {
 	mdl_u16_t static page_addr = 0;
-	mdl_u16_t _page_addr = (__addr >> SH)*PAGE_SIZE;
+	mdl_u16_t _page_addr = (__addr>>PAGE_SHIFT)*PAGE_SIZE;
 
 	// update page
 	if (page_addr != _page_addr) {
-		eeprom_page_update(__eeprom, page_addr >> SH);
+		eeprom_page_update(__eeprom, page_addr>>PAGE_SHIFT);
 		memset(page_buff, 0xFF, PAGE_SIZE);
 		page_addr = _page_addr;
 	}
-
-	mdl_u8_t page_off = __addr-page_addr;
-	page_buff[page_off] = __byte;
+	*(page_buff+(__addr-page_addr)) = __byte;
 }
 
 # ifndef __EEPROM_LIGHT
-void eeprom_put_w16(struct eeprom_t *__eeprom, mdl_u16_t __w16, mdl_u16_t __addr) {
-	eeprom_put_w8(__eeprom, __w16, __addr);
-	eeprom_put_w8(__eeprom, __w16 >> 8, __addr+1);
+void eeprom_put_16l(struct eeprom *__eeprom, mdl_u16_t __val, mdl_u16_t __addr) {
+	eeprom_put_8l(__eeprom, __val, __addr);
+	eeprom_put_8l(__eeprom, __val>>8, __addr+1);
 }
 
-void eeprom_get_w16(struct eeprom_t *__eeprom, mdl_u16_t *__w16, mdl_u16_t __addr) {
-	mdl_u8_t _16b_part;
+void eeprom_get_16l(struct eeprom *__eeprom, mdl_u16_t *__val, mdl_u16_t __addr) {
+	mdl_u8_t part;
 
-	_16b_part = 0;
-	eeprom_get_w8(__eeprom, &_16b_part, __addr);
-	*__w16 |= (mdl_u16_t)_16b_part;
+	part = 0;
+	eeprom_get_8l(__eeprom, &part, __addr);
+	*__val |= (mdl_u16_t)part;
 
-	_16b_part = 0;
-	eeprom_get_w8(__eeprom, &_16b_part, __addr+1);
-	*__w16 |= (mdl_u16_t)_16b_part << 8;
+	part = 0;
+	eeprom_get_8l(__eeprom, &part, __addr+1);
+	*__val |= (mdl_u16_t)part<<8;
 }
 
-void eeprom_put_w32(struct eeprom_t *__eeprom, mdl_u32_t __w32, mdl_u16_t __addr) {
-	eeprom_put_w16(__eeprom, __w32, __addr);
-	eeprom_put_w16(__eeprom, __w32 >> 16, __addr+1);
+void eeprom_put_32l(struct eeprom *__eeprom, mdl_u32_t __val, mdl_u16_t __addr) {
+	eeprom_put_16l(__eeprom, __val, __addr);
+	eeprom_put_16l(__eeprom, __val>>16, __addr+2);
 }
 
-void eeprom_get_w32(struct eeprom_t *__eeprom, mdl_u32_t *__w32, mdl_u16_t __addr) {
-	mdl_u16_t _32b_part;
+void eeprom_get_32l(struct eeprom *__eeprom, mdl_u32_t *__val, mdl_u16_t __addr) {
+	mdl_u16_t part;
 
-	_32b_part = 0;
-	eeprom_get_w16(__eeprom, &_32b_part, __addr);
-	*__w32 |= (mdl_u32_t)_32b_part;
+	part = 0;
+	eeprom_get_16l(__eeprom, &part, __addr);
+	*__val |= (mdl_u32_t)part;
 
-	_32b_part = 0;
-	eeprom_get_w16(__eeprom, &_32b_part, __addr+1);
-	*__w32 |= (mdl_u32_t)_32b_part << 16;
+	part = 0;
+	eeprom_get_16l(__eeprom, &part, __addr+2);
+	*__val |= (mdl_u32_t)part << 16;
 }
 
-void eeprom_put_w64(struct eeprom_t *__eeprom, mdl_u64_t __w64, mdl_u16_t __addr) {
-	eeprom_put_w32(__eeprom, __w64, __addr);
-	eeprom_put_w32(__eeprom, __w64 >> 32, __addr+1);
+void eeprom_put_64l(struct eeprom *__eeprom, mdl_u64_t __val, mdl_u16_t __addr) {
+	eeprom_put_32l(__eeprom, __val, __addr);
+	eeprom_put_32l(__eeprom, __val>>32, __addr+4);
 }
 
-void eeprom_get_w64(struct eeprom_t *__eeprom, mdl_u64_t *__w64, mdl_u16_t __addr) {
-	mdl_u32_t _64b_part;
+void eeprom_get_64l(struct eeprom *__eeprom, mdl_u64_t *__val, mdl_u16_t __addr) {
+	mdl_u32_t part;
 
-	_64b_part = 0;
-	eeprom_get_w32(__eeprom, &_64b_part, __addr);
-	*__w64 |= (mdl_u64_t)_64b_part;
+	part = 0;
+	eeprom_get_32l(__eeprom, &part, __addr);
+	*__val |= (mdl_u64_t)part;
 
-	_64b_part = 0;
-	eeprom_get_w32(__eeprom, &_64b_part, __addr+1);
-	*__w64 |= (mdl_u64_t)_64b_part << 32;
+	part = 0;
+	eeprom_get_32l(__eeprom, &part, __addr+4);
+	*__val |= (mdl_u64_t)part<<32;
 }
 # endif
-void eeprom_get_byte(struct eeprom_t *__eeprom, mdl_u8_t *__byte, mdl_u16_t __addr) {
-	_24lc256_get_byte((struct _24lc256_t*)__eeprom->driver_context, __byte, __addr);
+void eeprom_get_byte(struct eeprom *__eeprom, mdl_u8_t *__byte, mdl_u16_t __addr) {
+	_24lc256_get_byte((struct _24lc256*)__eeprom->driver_ctx, __byte, __addr);
 }

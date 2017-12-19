@@ -10,14 +10,105 @@ int main(void) {
 		micro_tick();
 	}
 }
-/*
-void micro_init(){}
-void micro_tick() {
-	tmp_send_byte(&_tmp_io, 1);
-}*/
 
+void micro_init() {
+
+}
+
+void micro_tick() {
+
+}
+
+/*
+# include "shift_reg.h"
+# define _PD1 5
+# define _PD2 0
+# define _PD3 1
+# define _PD4 2
+# define _PD5 3
+# define _PD6 4
+# define _PD7 5
+# define _PC2 6
+# define RESET 13
+
+struct shift_reg_t shift_reg = {
+	.data_pid = 2,
+	.latch_pid = 3,
+	.clock_pid = 4,
+	.data_flow = SHIFT_REG_OUT
+};
+
+void wait() {
+	while(!get_pin_state(_PD1));
+}
+
+void micro_init() {
+	set_pin_mode(DIGITAL_IN, _PD1);
+	set_pin_mode(DIGITAL_OUT, _PD2);
+	set_pin_mode(DIGITAL_OUT, _PD3);
+	set_pin_mode(DIGITAL_OUT, _PD4);
+	set_pin_mode(DIGITAL_OUT, _PD5);
+	set_pin_mode(DIGITAL_OUT, _PD6);
+	set_pin_mode(DIGITAL_OUT, _PD7);
+	shift_reg_init(&shift_reg);
+	shift_reg_set(&shift_reg, shift_reg.ps_list);
+//	mdl_u8_t ps[8] = {1, 0, 1, 0, 1, 0, 1, 0};
+//	shift_reg_set(&shift_reg, ps);
+}
+
+void micro_tick() {}
+*/
+/*
+void micro_init() {
+	set_pin_mode(DIGITAL_OUT, 2);
+}
+
+# define _1000HZ ((F_CPU/16/1000000)/2)
+
+void delay_me(mdl_uint_t __hz) {
+	mdl_uint_t i = 0;
+
+	_again:
+	if (i >= (300-__hz)) return;
+	_delay_us(_1000HZ);
+	i++;
+	goto _again;
+}
+
+mdl_uint_t hz = 298;
+void micro_tick() {
+	set_pin_state(DIGITAL_HIGH, 2);
+	delay_me(hz);
+	set_pin_state(DIGITAL_LOW, 2);
+	delay_me(hz);
+}
+
+//# include "sketches/at_prog.c"
+*/
+/*
+# include "drivers/23lc1024.c"
+void micro_init() {
+	_23lc1024_init(2, 3, 4, 5);
+}
+
+void micro_tick() {
+	mdl_u8_t static c = 0;
+	cli();
+	_23lc1024_put(0, c++);
+	_23lc1024_put(1, 212);
+	mdl_u8_t byte = 0;
+	_delay_ms(2);
+	_23lc1024_get(0, &byte);
+
+	sei();
+
+	_delay_ms(20);
+	uart_send_byte(byte);
+}
+*/
 //# include "sketches/uart_tmp_relay.c"
-# include "sketches/prog_uploader.c"
+//# include "sketches/prog_uploader.c"
+//# include "sketches/at_prog.c"
 //# include "sketches/oscope.c"
 //# include "sketches/tmp_client.c"
 //# include "sketches/tmp_server.c"
