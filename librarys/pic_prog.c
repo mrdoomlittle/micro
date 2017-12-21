@@ -3,10 +3,10 @@
 void exit_prog_mode(struct pic_prog_t*);
 void enter_prog_mode(struct pic_prog_t*);
 void pic_prog_init(struct pic_prog_t *__pic_prog, mdl_u8_t __clk_pid, mdl_u8_t __data_pid, mdl_u8_t __pmg_pid, mdl_u8_t __mclr_pid) {
-	set_pin_mode(DIGITAL_OUTPUT, __clk_pid);
-	set_pin_mode(DIGITAL_OUTPUT, __data_pid);
-	set_pin_mode(DIGITAL_OUTPUT, __pmg_pid);
-	set_pin_mode(DIGITAL_OUTPUT, __mclr_pid);
+	io_set_direct(io_direct_out, __clk_pid);
+	io_set_direct(io_direct_out, __data_pid);
+	io_set_direct(io_direct_out, __pmg_pid);
+	io_set_direct(io_direct_out, __mclr_pid);
 	__pic_prog-> clk_pid = __clk_pid;
 	__pic_prog-> data_pid = __data_pid;
 	__pic_prog-> pgm_pid = __pmg_pid;
@@ -16,14 +16,14 @@ void pic_prog_init(struct pic_prog_t *__pic_prog, mdl_u8_t __clk_pid, mdl_u8_t _
 }
 
 void exit_prog_mode(struct pic_prog_t *__pic_prog) {
-	set_pin_state(DIGITAL_LOW, __pic_prog->pgm_pid);
-	set_pin_state(DIGITAL_LOW, __pic_prog->mclr_pid);
+	io_set_val(io_val_low, __pic_prog->pgm_pid);
+	io_set_val(io_val_low, __pic_prog->mclr_pid);
 	_delay_ms(50);
 }
 
 void enter_prog_mode(struct pic_prog_t *__pic_prog) {
-	set_pin_state(DIGITAL_HIGH, __pic_prog->pgm_pid);
-	set_pin_state(DIGITAL_HIGH, __pic_prog->mclr_pid);
+	io_set_val(io_val_high, __pic_prog->pgm_pid);
+	io_set_val(io_val_high, __pic_prog->mclr_pid);
 	_delay_ms(50);
 }
 
@@ -166,7 +166,7 @@ void pic_prog_tick(struct pic_prog_t *__pic_prog) {
 		case 0xB: {
 			uart_send_byte(0);
 			mdl_u16_t data = 0x0;
-			uart_recv_w16(&data);
+			uart_recv_16l(&data);
 			pic_prog_load_data(__pic_prog, data);
 			break;
 		}
@@ -175,7 +175,7 @@ void pic_prog_tick(struct pic_prog_t *__pic_prog) {
 			uart_send_byte(0);
 			mdl_u16_t data = 0x0;
 			pic_prog_read_data(__pic_prog, &data);
-			uart_send_w16(data);
+			uart_send_16l(data);
 			break;
 		}
 
@@ -201,31 +201,32 @@ void pic_prog_send(struct pic_prog_t *__pic_prog, mdl_u8_t __byte, mdl_uint_t __
 	}
 }
 
-void pic_prog_recv(struct pic_prog_t *__pic_prog, mdl_u8_t* __byte, mdl_uint_t __n) {
-	for (mdl_u8_t point = 0; point != __n; point ++) {
+void pic_prog_recv(struct pic_prog_t *__pic_prog, mdl_u8_t *__byte, mdl_uint_t __n) {
+	mdl_u8_t off = 0;
+	for (;off != __n;off++) {
 		mdl_u8_t __bit = 0x0;
 		pic_prog_read_bit(__pic_prog, &__bit);
-		*__byte |= __bit << point;
+		*__byte |= __bit<<off;
 		_delay_ms(DELAY);
 	}
 }
 
 void pic_prog_write_bit(struct pic_prog_t *__pic_prog, mdl_u8_t __bit) {
-	set_pin_mode(DIGITAL_OUTPUT, __pic_prog-> data_pid);
-	set_pin_state(DIGITAL_HIGH, __pic_prog-> clk_pid);
-	set_pin_state(__bit, __pic_prog->data_pid);
+	io_set_direct(io_direct_out, __pic_prog-> data_pid);
+	io_set_val(io_val_high, __pic_prog-> clk_pid);
+	io_set_val(__bit, __pic_prog->data_pid);
 	_delay_ms(DELAY);
-	set_pin_state(DIGITAL_LOW, __pic_prog-> clk_pid);
+	io_set_val(io_val_low, __pic_prog-> clk_pid);
 	_delay_ms(DELAY);
 }
 
 void pic_prog_read_bit(struct pic_prog_t *__pic_prog, mdl_u8_t *__bit) {
-	set_pin_mode(DIGITAL_INPUT, __pic_prog-> data_pid);
-	set_pin_state(DIGITAL_HIGH, __pic_prog-> clk_pid);
+	io_set_direct(io_direct_in, __pic_prog-> data_pid);
+	io_set_val(io_val_high, __pic_prog-> clk_pid);
 	_delay_ms(DELAY);
 
-	*__bit = get_pin_state(__pic_prog-> data_pid);
+	*__bit = io_get_val(__pic_prog-> data_pid);
 
-	set_pin_state(DIGITAL_LOW, __pic_prog-> clk_pid);
+	io_set_val(io_val_low, __pic_prog-> clk_pid);
 	_delay_ms(DELAY);
 }

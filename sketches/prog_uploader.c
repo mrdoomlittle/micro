@@ -1,70 +1,70 @@
-//# define USE_EEPROM
+# define USE_EEPROM
 # ifdef USE_EEPROM
 #	include "../modules/eeprom.h"
 # else
 #	include "../drivers/23lc1024.c"
 # endif
-# include <bci.h>
+# include <mdl/bci.h>
 # ifdef USE_EEPROM
-struct eeprom_t eeprom;
-struct _24lc256_t _24lc256;
+struct eeprom eeprom;
+struct _24lc256 _24lc256;
 # endif
-bci_addr_t pc = 0;
+bci_addr_t ip = 0;
 
-mdl_u8_t get_byte() {
+mdl_u8_t get_byte(bci_off_t __off) {
 	mdl_u8_t byte = 0;
 # ifdef USE_EEPROM
-	eeprom_get_w8(&eeprom, &byte, pc);
+	eeprom_get_8l(&eeprom, &byte, ip+__off);
 # else
-	_23lc1024_get(pc, &byte);
+	_23lc1024_get(ip+__off, &byte);
 # endif
 	return byte;
 }
 
-void pc_incr() {
-	pc++;
+void ip_incr(bci_uint_t __by) {
+	ip+=__by;
 }
 
-void set_pc(bci_addr_t __pc) {
-	pc = __pc;
+void set_ip(bci_addr_t __ip) {
+	ip = __ip;
 }
 
-bci_addr_t get_pc() {
-	return pc;
+bci_addr_t get_ip() {
+	return ip;
 }
 
 struct m_arg {
-	mdl_u8_t pin_mode, pin_state, pid;
+	mdl_u8_t direct, val, pid;
 } __attribute__((packed));
 
-void* test_func(mdl_u8_t __id, void *__arg) {
+void* extern_call(mdl_u8_t __id, void *__arg_p) {
 	mdl_u64_t static ret_val;
-	struct m_arg *_m_arg = (struct m_arg*)__arg;
+	struct m_arg *arg = (struct m_arg*)__arg_p;
 
 	switch(__id) {
 		case 0:
-			set_pin_mode(_m_arg->pin_mode, _m_arg->pid);
+			io_set_direct(arg->direct, arg->pid);
 		break;
 		case 1:
-			set_pin_state(_m_arg->pin_state, _m_arg->pid);
+			io_set_val(arg->val, arg->pid);
 		break;
 		case 2:
-			ret_val = get_pin_state(_m_arg->pid);
+			ret_val = io_get_val(arg->pid);
 		break;
 		case 3: {
 			mdl_uint_t milli_sec = 0;
 			_another:
-			if (milli_sec++ == *(mdl_u16_t*)__arg) break;
+			if (milli_sec++ == *(mdl_u16_t*)__arg_p) break;
 			_delay_ms(1);
 			goto _another;
 		}
 		break;
-# ifdef __WITH_TMP
+# ifdef __mdl_tmp
 		case 4:
-			tmp_send_byte(&_tmp_io, *(mdl_u8_t*)__arg);
+			tmp_send_byte(&_tmp_io, *(mdl_u8_t*)__arg_p);
 		break;
 		case 5:
-			tmp_recv_byte(&_tmp_io, (mdl_u8_t*)__arg);
+			tmp_recv_byte(&_tmp_io, (mdl_u8_t*)__arg_p);
 		break;
 		case 6:
 			ret_val = tmp_par_arcv_sig(&_tmp_io);
@@ -78,17 +78,23 @@ void* test_func(mdl_u8_t __id, void *__arg) {
 }
 
 struct bci _bci = {
-	.stack_size = 120,
+	.stack_size = 100,
 	.get_byte = &get_byte,
-	.set_pc = &set_pc,
-	.get_pc = &get_pc,
-	.pc_incr = &pc_incr
+	.set_ip = &set_ip,
+	.get_ip = &get_ip,
+	.ip_incr = &ip_incr,
+	.prog_size = 0xFFFF // stop it from causing issue
 };
 
 void act_indc() {
+	mdl_u8_t static state = 0;
+	state = ~state;
+	io_set_direct(io_direct_out, 13);
+	io_set_val(state&0x1, 13);
 }
 
 void iei(void *__arg) {
+	act_indc();
 }
 
 void micro_init() {
@@ -98,10 +104,10 @@ void micro_init() {
 # else
 	_23lc1024_init(2, 3, 4, 5);
 # endif
-    bci_init(&_bci);
-    bci_set_extern_fp(&_bci, &test_func);
-	bci_set_act_indc_fp(&_bci, &act_indc);
-	bci_set_iei_fp(&_bci, &iei);
+	bci_init(&_bci, 0);
+    bci_set_exc(&_bci, &extern_call);
+	bci_set_iei(&_bci, &iei);
+	io_set_direct(io_direct_out, 11);
 }
 
 # define send_ack(__val) uart_send_byte(__val)
@@ -109,14 +115,13 @@ mdl_uint_t addr = 0;
 void micro_tick() {
 	mdl_u8_t i = 0x0;
 	uart_recv_byte(&i);
-
 	switch(i) {
 		case 0x1: {
 			send_ack(1);
 			mdl_u8_t inbound_byte;
 			uart_recv_byte(&inbound_byte);
 # ifdef USE_EEPROM
-			eeprom_put_w8(&eeprom, inbound_byte, addr);
+			eeprom_put_8l(&eeprom, inbound_byte, addr);
 # else
 			cli();
 			_23lc1024_put(addr, inbound_byte);
@@ -129,7 +134,7 @@ void micro_tick() {
 			send_ack(1);
 			mdl_u8_t outbound_byte = 0;
 # ifdef USE_EEPROM
-			eeprom_get_w8(&eeprom, &outbound_byte, addr);
+			eeprom_get_8l(&eeprom, &outbound_byte, addr);
 # else
 			cli();
 			_23lc1024_get(addr, &outbound_byte);
@@ -143,7 +148,7 @@ void micro_tick() {
 		case 0x3:
 			send_ack(1);
 # ifdef USE_EEPROM
-			eeprom_page_update(&eeprom, addr>>6);
+			eeprom_page_update(&eeprom, (addr-1)>>6);
 # endif
 		break;
 
@@ -155,7 +160,10 @@ void micro_tick() {
 		case 0x5: {
 			send_ack(1);
 			cli();
-			bci_exec(&_bci, 0x0, 0);
+			if (bci_exec(&_bci, 0x0000, NULL, NULL, 0) == BCI_SUCCESS) {
+				io_set_val(io_val_high, 11);
+			} else
+				io_set_val(io_val_low, 11);
 			sei();
 			send_ack(1);
 			break;

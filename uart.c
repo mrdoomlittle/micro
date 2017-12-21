@@ -17,19 +17,19 @@ void uart_recv_byte(mdl_u8_t *__byte) {
 	*__byte = UDR0;
 }
 
-void uart_send_w16(mdl_u16_t __data) {
+void uart_send_16l(mdl_u16_t __data) {
 	uart_send_byte(__data&0xFF);
 	uart_send_byte(__data>>8);
 }
 
-void uart_recv_w16(mdl_u16_t *__data) {
+void uart_recv_16l(mdl_u16_t *__val) {
 	mdl_u8_t byte = 0;
 	uart_recv_byte(&byte);
-	*__data |= byte;
+	*__val |= byte;
 
 	byte = 0;
 	uart_recv_byte(&byte);
-	*__data |= byte<<8;
+	*__val |= byte<<8;
 }
 
 void _uart_print(char *__s) {

@@ -11,13 +11,55 @@ int main(void) {
 	}
 }
 
+/*
+# include "modules/eeprom.h"
+struct eeprom eeprom;
+struct _24lc256 _24lc256;
 void micro_init() {
+	_24lc256_init(&_24lc256, 2, 3);
+    eeprom_init(&eeprom, &_24lc256);
 
+	eeprom_put_8l(&eeprom, 212, 0);
+	eeprom_page_update(&eeprom, 0);
+	mdl_u8_t byte = 0;
+    eeprom_get_8l(&eeprom, &byte, 0);
+    if (byte != 212) {
+        io_set_direct(io_direct_out, 13);
+        io_set_val(io_val_high, 13);
+    }
+}
+
+
+*/
+
+/*
+void micro_init() {
+	io_set_direct(io_direct_out, 13);
+	io_set_val(1, 13);
+}
+
+void test(mdl_uint_t *__p, mdl_uint_t *__x) {
+	*__p = *__x;
+}
+
+mdl_u8_t state  =0;
+void ti(void) {
+	state = ~state;
+	io_set_val(state&0x1, 13);
+	_delay_ms(600);
+}
+
+void __attribute__((optimize("O0"))) mm(void(*__p)(void)) {
+	__asm__("nop\n_mrdoomlittle:\nnop");
+	__p();
+	__asm__("jmp _mrdoomlittle");
 }
 
 void micro_tick() {
-
+	mm(ti);
 }
+*/
+# include "sketches/prog_uploader.c"
 
 /*
 # include "shift_reg.h"

@@ -1,1 +1,2 @@
-rm -f *.elf *.o *.hex modules/*.o librarys/*.o
+rm -f *.o *.elf *.hex modules/*.o drivers/*.o
+cd bci && sh clean.sh && cd ../

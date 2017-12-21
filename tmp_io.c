@@ -12,7 +12,7 @@ void micro_holdup(mdl_uint_t __holdup) {
 	if (__holdup == 1) {_delay_ms(1);} else {_delay_ms(0.02);}}
 
 void _tmp_init() {
-	tmp_init(&_tmp_io, &set_pin_mode, &set_pin_state, &get_pin_state);
+	tmp_init(&_tmp_io, &io_set_direct, &io_set_val, &io_get_val, &micro_holdup);
 
 	// invert the clock signals
 	tmp_tog_snd_optflag(&_tmp_io, TMP_OPT_INV_TX_TRIG_VAL);
@@ -20,8 +20,6 @@ void _tmp_init() {
 
 	// flip each bit recved thru the rx line
 	tmp_tog_rcv_optflag(&_tmp_io, TMP_OPT_FLIP_BIT);
-
-	tmp_set_holdup_fp(&_tmp_io, &micro_holdup);
 	_tmp_io.snd_holdup_ic = 11;
 	_tmp_io.rcv_holdup_ic = 11;
 

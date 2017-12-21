@@ -7,8 +7,8 @@
 void uart_init(void);
 void uart_send_byte(mdl_u8_t);
 void uart_recv_byte(mdl_u8_t*);
-void uart_send_w16(mdl_u16_t);
-void uart_recv_w16(mdl_u16_t*);
+void uart_send_16l(mdl_u16_t);
+void uart_recv_16l(mdl_u16_t*);
 
 void uart_print(char*);
 void uart_println(char*);

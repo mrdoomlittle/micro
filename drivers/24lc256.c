@@ -3,56 +3,56 @@
 # define ISR_ENABLE if (re_enable_gi) sei();
 void _24lc256_start_bit(struct _24lc256 *__24lc256) {
 	ISR_DISABLE
-	set_pin_state(DIGITAL_OUTPUT, __24lc256->sda_pid);
-	set_pin_state(DIGITAL_HIGH, __24lc256->sda_pid);
-	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
+	io_set_direct(io_direct_out, __24lc256->sda_pid);
+	io_set_val(io_val_high, __24lc256->sda_pid);
+	io_set_val(io_val_high, __24lc256->scl_pid);
 	_delay_us(_24LC256_LDELAY);
 
-	set_pin_state(DIGITAL_LOW, __24lc256->sda_pid);
+	io_set_val(io_val_low, __24lc256->sda_pid);
 	_delay_us(_24LC256_DELAY);
-	set_pin_state(DIGITAL_LOW, __24lc256->scl_pid);
+	io_set_val(io_val_low, __24lc256->scl_pid);
 	_delay_us(_24LC256_DELAY);
 	ISR_ENABLE
 }
 
 void _24lc256_end_bit(struct _24lc256 *__24lc256) {
 	ISR_DISABLE
-	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
-	set_pin_state(DIGITAL_LOW, __24lc256->sda_pid);
-	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
+	io_set_direct(io_direct_out, __24lc256->sda_pid);
+	io_set_val(io_val_low, __24lc256->sda_pid);
+	io_set_val(io_val_high, __24lc256->scl_pid);
 	_delay_us(_24LC256_LDELAY);
 
-	set_pin_state(DIGITAL_HIGH, __24lc256->sda_pid);
+	io_set_val(io_val_high, __24lc256->sda_pid);
 	_delay_us(_24LC256_DELAY);
 	ISR_ENABLE
 }
 
 void _24lc256_write_bit(struct _24lc256 *__24lc256, mdl_u8_t __bit) {
 	ISR_DISABLE
-	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
-	set_pin_state(__bit, __24lc256->sda_pid);
+	io_set_direct(io_direct_out, __24lc256->sda_pid);
+	io_set_val(__bit, __24lc256->sda_pid);
 
-	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
+	io_set_val(io_val_high, __24lc256->scl_pid);
 	_delay_us(_24LC256_CLK_HI_DELAY);
-	set_pin_state(DIGITAL_LOW, __24lc256->scl_pid);
+	io_set_val(io_val_low, __24lc256->scl_pid);
 	_delay_us(_24LC256_CLK_LO_DELAY);
-	set_pin_state(DIGITAL_LOW, __24lc256->sda_pid);
+	io_set_val(io_val_low, __24lc256->sda_pid);
 	_delay_us(_24LC256_DELAY);
 	ISR_ENABLE
 }
 
 void _24lc256_read_bit(struct _24lc256 *__24lc256, mdl_u8_t *__bit) {
 	ISR_DISABLE
-	set_pin_mode(DIGITAL_HIGH, __24lc256->sda_pid);
-	set_pin_mode(DIGITAL_INPUT, __24lc256->sda_pid);
+	io_set_direct(io_val_high, __24lc256->sda_pid);
+	io_set_direct(io_direct_in, __24lc256->sda_pid);
 	_delay_us(_24LC256_DELAY);
-	*__bit = get_pin_state(__24lc256->sda_pid);
+	*__bit = io_get_val(__24lc256->sda_pid);
 
-	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
+	io_set_val(io_val_high, __24lc256->scl_pid);
 	_delay_us(_24LC256_CLK_HI_DELAY);
-	set_pin_state(DIGITAL_LOW, __24lc256->scl_pid);
+	io_set_val(io_val_low, __24lc256->scl_pid);
 	_delay_us(_24LC256_CLK_LO_DELAY);
-	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
+	io_set_direct(io_direct_out, __24lc256->sda_pid);
 	ISR_ENABLE
 }
 
@@ -119,8 +119,8 @@ void _24lc256_page_write(struct _24lc256 *__24lc256, mdl_u8_t __page[64], mdl_u1
 	_24lc256_put_byte(__24lc256, *__page, __addr);
 	ignore_end_bit = 0;
 
-	mdl_u8_t *itr = __page+1;
-	while(itr != __page+64) {
+	mdl_u8_t *itr = __page+1; // +1 ^
+ 	while(itr != __page+64) {
 		mdl_u8_t off = 0;
 		for (;off != 8;off++)
 			_24lc256_write_bit(__24lc256, (*itr>>off)&0x1);
@@ -201,7 +201,7 @@ void _24lc256_seq_read(struct _24lc256 *__24lc256, mdl_u8_t *__p, mdl_uint_t __b
 	_24lc256_get_byte(__24lc256, __p, __addr);
 	ignore_end_bit = 0;
 
-	mdl_u8_t *itr = __p+1;
+	mdl_u8_t *itr = __p+1; // +1 ^
 	while(itr != __p+__bc) {
 		mdl_u8_t off = 0;
 		for (;off != 8;off++) {
@@ -220,8 +220,8 @@ void _24lc256_seq_read(struct _24lc256 *__24lc256, mdl_u8_t *__p, mdl_uint_t __b
 void _24lc256_init(struct _24lc256 *__24lc256, mdl_u8_t __sda_pid, mdl_u8_t __scl_pid) {
 	__24lc256->sda_pid = __sda_pid;
     __24lc256->scl_pid = __scl_pid;
-	set_pin_mode(DIGITAL_OUTPUT, __24lc256->sda_pid);
-	set_pin_mode(DIGITAL_OUTPUT, __24lc256->scl_pid);
-	set_pin_state(DIGITAL_HIGH, __24lc256->sda_pid);
-	set_pin_state(DIGITAL_HIGH, __24lc256->scl_pid);
+	io_set_direct(io_direct_out, __24lc256->sda_pid);
+	io_set_direct(io_direct_out, __24lc256->scl_pid);
+	io_set_val(io_val_high, __24lc256->sda_pid);
+	io_set_val(io_val_high, __24lc256->scl_pid);
 }

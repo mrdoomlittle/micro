@@ -1,10 +1,6 @@
-rm -f *.o
-rm -f *.elf
-rm -f *.hex
-rm -f modules/*.o drivers/*.o
-
+sh clean.sh
 build_tmp=0
-build_bci=0
+build_bci=1
 build_mfs=0
 
 inc_flags="-Imdlint/inc -I/usr/local/include"
@@ -28,7 +24,7 @@ fi
 BOOT_LOADER=/home/daniel-robson/Desktop/micronucleus/firmware
 BLHEX=main.hex
 HEXMURGE=/home/daniel-robson/Projects/hexmurge
-objs="uart.o wiring_digital.o shift_reg.o modules/eeprom.o drivers/24lc256.o"
+objs="uart.o shift_reg.o modules/eeprom.o drivers/24lc256.o io.o"
 ld_flags=""
 
 if [ $build_tmp -eq 1 ]; then
@@ -78,7 +74,7 @@ avr-gcc -c -g -Wall -D__$arc $inc_flags $defines -std=c11 -D__$device -DF_CPU=$f
 #avr-gcc -c -g $arc $CXX_IFLAGS -std=c11 -D__$device -DF_CPU=$f_cpu -Os -mmcu=$device -o librarys/pic_prog.o librarys/pic_prog.c
 avr-gcc -c -g -Wall -D__$arc $inc_flags $defines -std=c11 -D__$device -DF_CPU=$f_cpu -Os -mmcu=$device -o micro.o micro.c
 avr-gcc -c -g -Wall -D__$arc $inc_flags $defines -std=c11 -D__$device -DF_CPU=$f_cpu -Os -mmcu=$device -o uart.o uart.c
-avr-gcc -c -g -Wall -D__$arc $inc_flags $defines -std=c11 -D__$device -DF_CPU=$f_cpu -Os -mmcu=$device -o wiring_digital.o wiring_digital.c
+avr-gcc -c -g -Wall -D__$arc $inc_flags $defines -std=c11 -D__$device -DF_CPU=$f_cpu -Os -mmcu=$device -o io.o io.c
 avr-gcc -c -g -Wall -D__$arc $inc_flags $defines -std=c11 -D__$device -DF_CPU=$f_cpu -Os -mmcu=$device -o shift_reg.o shift_reg.c
 avr-gcc -g -Wall -D__$arc $flags $defines -std=c11 -mmcu=$device -D__$device -DF_CPU=$f_cpu micro.o $objs -o micro.elf $ld_flags
 avr-objcopy -j .text -j .data -O ihex micro.elf micro.hex

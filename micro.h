@@ -1,13 +1,9 @@
 # ifndef __micro__h
 # define __micro__h
-# define DIGITAL_HIGH 0x1
-# define DIGITAL_LOW 0x0
-
-# define DIGITAL_OUTPUT 0x1
-# define DIGITAL_INPUT 0x0
-
-# define DIGITAL_OUT 0x1
-# define DIGITAL_IN 0x0
+# define io_direct_in 0x0
+# define io_direct_out 0x1
+# define io_val_high 0x1
+# define io_val_low 0x0
 
 # define __MICRO_LIGHT
 # define ATTINY_85_MX_PID 4
@@ -20,16 +16,17 @@
 # include <math.h>
 # include <util/delay.h>
 # include "uart.h"
-# include "wiring_digital.h"
+# include "io.h"
 # ifdef __mdl_tmp
 #	include "tmp_io.h"
 # endif
 
-void extern micro_init();
-void extern micro_tick();
-
-void __inline__ bzero(mdl_u8_t *__data, mdl_uint_t __bytes) {
-	for (mdl_uint_t point = 0; point != __bytes; point ++) *(__data + point) = 0x0;
+void micro_init();
+void micro_tick();
+void __inline__ static bzero(mdl_u8_t *__p, mdl_uint_t __bytes) {
+	mdl_u8_t *itr = __p;
+	while(itr != __p+__bytes)
+		*(itr++) = 0x0;
 }
 
 # endif /*__micro__h*/

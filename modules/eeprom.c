@@ -21,7 +21,7 @@ void eeprom_put_byte(struct eeprom *__eeprom, mdl_u8_t __byte, mdl_u16_t __addr)
 		memset(page_buff, 0xFF, PAGE_SIZE);
 		page_addr = _page_addr;
 	}
-	*(page_buff+(__addr-page_addr)) = __byte;
+	*(page_buff+(__addr-_page_addr)) = __byte;
 }
 
 # ifndef __EEPROM_LIGHT

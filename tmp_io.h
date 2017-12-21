@@ -11,7 +11,7 @@
 # define TMP_RX_PID 9
 # define TMP_TX_PID 10
 
-# include <tmp_io.h>
+# include <mdl/tmp_io.h>
 struct tmp_io extern _tmp_io;
 
 void _tmp_init();
